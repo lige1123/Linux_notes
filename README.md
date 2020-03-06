@@ -7,4 +7,12 @@
 
 
 
-### https://blog.51cto.com/10970492/1735258
+    https://blog.51cto.com/10970492/1735258
+
+
+
+
+### bad mount option huge 
+    centos 7.7+'s   hug
+
+
