@@ -116,27 +116,6 @@ char *Get_gid(gid_t gid) {
 }
 
 
-char *Get_mode(mode_t mode) {
-    char s[15];
-    strcpy(s, "----------.");
-    if (S_ISDIR(mode)) s[0] = 'd';
- //   else if (S_IFLNK(mode)) s[0] = 'l';
-    else if (S_ISCHR(mode)) s[0] = 'c';
-    else if (S_ISBLK(mode)) s[0] = 'b';
-   // else if (S_IFIFO(mode)) s[0] = 'i';
-   // else if (S_IFREG(mode)) s[0] = 'r';
-    if (mode & S_IRUSR) s[1] = 'r';
-    if (mode & S_IWUSR) s[2] = 'w';
-    if (mode & S_IXUSR) s[3] = 'x';
-    if (mode & S_IRGRP) s[4] = 'r';
-    if (mode & S_IWGRP) s[5] = 'w';
-    if (mode & S_IXGRP) s[6] = 'x';
-    if (mode & S_IROTH) s[7] = 'r';
-    if (mode & S_IWOTH) s[8] = 'w';
-    if (mode & S_IXOTH) s[9] = 'x';
-    return s;
-}
-
 
 void do_ls_1(char dirname[]) {
     DIR *dirp;
@@ -162,12 +141,10 @@ void do_ls_1(char dirname[]) {
         sprintf(complete_D_name + ans, "/%s", complete_d_name[i]);
         struct stat info;
         stat(complete_D_name, &info);
-        printf("%10s ", Get_mode(info.st_mode));
-        printf("%d ", info.st_nlink);
         printf("%7s ", Get_uid(info.st_uid));
-        printf("%7s ", Get_gid(info.st_gid));
-        printf("%5ld ", info.st_size);
-        printf("%.12s", 4 + ctime(&info.st_mtime));
+        printf("%7s  ", Get_gid(info.st_gid));
+        printf("%.12s", ctime(&info.st_mtime));
+        printf("%8ld", info.st_size);
         cout << "  ";
         cout << complete_d_name[i];
         cout << endl;

@@ -162,12 +162,12 @@ void do_ls_1(char dirname[]) {
         sprintf(complete_D_name + ans, "/%s", complete_d_name[i]);
         struct stat info;
         stat(complete_D_name, &info);
-        printf("%10s ", Get_mode(info.st_mode));
-        printf("%d ", info.st_nlink);
+        printf("%13s  ", Get_mode(info.st_mode));
+        printf("%4d ", info.st_nlink);
         printf("%7s ", Get_uid(info.st_uid));
-        printf("%7s ", Get_gid(info.st_gid));
-        printf("%5ld ", info.st_size);
-        printf("%.12s", 4 + ctime(&info.st_mtime));
+        printf("%7s  ", Get_gid(info.st_gid));
+        printf("%.12s", ctime(&info.st_mtime));
+        printf("%8ld", info.st_size);
         cout << "  ";
         cout << complete_d_name[i];
         cout << endl;

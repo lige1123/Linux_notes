@@ -9,18 +9,14 @@
 #include<dirent.h>
 #include<sys/types.h>
 #include<sys/ioctl.h>
-#include<sys/stat.h>
 #include<unistd.h>
 #include<termios.h>
 #include<cstring>
 #include<iostream>
 #include<algorithm>
-#include<pwd.h>
-#include<grp.h>
 using namespace std;
 
 void do_ls(char[]);
-void do_ls_1(char[]);
 int init_ioctl(int *, int *);
 
 int main(int argc, char *argv[]) {
@@ -28,16 +24,13 @@ int main(int argc, char *argv[]) {
         do_ls(".");
     } else {
         while(--argc) {
-            int FLAG = 0;
-            if (strcmp(*argv, "-a") == 0) FLAG = 1;
-            if (strcmp(*argv, "-l") == 0) FLAG = 2;
             printf("%s: \n", *++argv);
-            if (FLAG == 1) do_ls(*argv);
-            if (FLAG == 2) do_ls_1(*argv);
+            do_ls(*argv);
         }
     }
     return 0;
 }
+
 
 
 int my_sort(char (*a)[20], int n) {
@@ -65,6 +58,7 @@ void do_ls(char dirname[]) {
     char complete_d_name[1005][20];
     int n = 0, Blanket_MAX = 0;
     while ((direntp = readdir(dirp)) != NULL) {
+        if (direntp->d_name[0] == '.') continue;
         int Blanket = sprintf(complete_d_name[n++], "%s", direntp->d_name);
         if (Blanket_MAX < Blanket) Blanket_MAX = Blanket;
     }
@@ -103,75 +97,6 @@ int init_ioctl(int *col, int *row) {
     return 0;
 }
 
-char *Get_uid(uid_t uid) {
-    struct passwd *p;
-    p = getpwuid(uid);
-    return p->pw_name;
-}
-
-char *Get_gid(gid_t gid) {
-    struct group *g;
-    g = getgrgid(gid);
-    return g->gr_name;
-}
 
 
-char *Get_mode(mode_t mode) {
-    char s[15];
-    strcpy(s, "----------.");
-    if (S_ISDIR(mode)) s[0] = 'd';
- //   else if (S_IFLNK(mode)) s[0] = 'l';
-    else if (S_ISCHR(mode)) s[0] = 'c';
-    else if (S_ISBLK(mode)) s[0] = 'b';
-   // else if (S_IFIFO(mode)) s[0] = 'i';
-   // else if (S_IFREG(mode)) s[0] = 'r';
-    if (mode & S_IRUSR) s[1] = 'r';
-    if (mode & S_IWUSR) s[2] = 'w';
-    if (mode & S_IXUSR) s[3] = 'x';
-    if (mode & S_IRGRP) s[4] = 'r';
-    if (mode & S_IWGRP) s[5] = 'w';
-    if (mode & S_IXGRP) s[6] = 'x';
-    if (mode & S_IROTH) s[7] = 'r';
-    if (mode & S_IWOTH) s[8] = 'w';
-    if (mode & S_IXOTH) s[9] = 'x';
-    return s;
-}
-
-
-void do_ls_1(char dirname[]) {
-    DIR *dirp;
-    struct dirent *direntp;
-    if ((dirp = opendir(dirname)) == NULL) {
-        perror("opendir");
-        return ;
-    }
-    char complete_d_name[1005][20];
-    int n = 0, Blanket_MAX = 0;
-    while ((direntp = readdir(dirp)) != NULL) {
-        if (direntp->d_name == ".") continue;
-        int Blanket = sprintf(complete_d_name[n++], "%s", direntp->d_name);
-        if (Blanket_MAX < Blanket) Blanket_MAX = Blanket;
-    }
-    int COL, ROW;
-    init_ioctl(&COL, &ROW);
-    cout << "total " << n << " files" << endl;
-    my_sort(complete_d_name, n);
-    for (int i = 0; i < n; i++) {
-        char complete_D_name[200];
-        int ans = sprintf(complete_D_name, "%s",dirname);
-        sprintf(complete_D_name + ans, "/%s", complete_d_name[i]);
-        struct stat info;
-        stat(complete_D_name, &info);
-        printf("%10s ", Get_mode(info.st_mode));
-        printf("%d ", info.st_nlink);
-        printf("%7s ", Get_uid(info.st_uid));
-        printf("%7s ", Get_gid(info.st_gid));
-        printf("%5ld ", info.st_size);
-        printf("%.12s", 4 + ctime(&info.st_mtime));
-        cout << "  ";
-        cout << complete_d_name[i];
-        cout << endl;
-    }
-    closedir(dirp);
-}
 
