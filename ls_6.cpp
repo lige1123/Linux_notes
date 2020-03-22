@@ -56,41 +56,73 @@ int my_sort(char (*a)[20], int n) {
 }
 
 
-int OUTPUTcolor_file_Name(char *a, int FLAG) {
-    int m = strlen(a);
+void OUTPUTcolor_file_Name(char *a, int FLAG) {
     switch(FLAG) {
         case 1 :
-            printf("\033[1;0m%s\033[0m", a);
+            printf("\033[0;36m %s \033[0m", a);
             break;
         case 2 :
-            printf("\033[0;34m%s\033[0m", a);
+            printf("\033[0;34m %s \033[0m", a);
             break;
         case 3 :
-            printf("\033[0;33m%s\033[0m", a);
+            printf("\033[0;33m %s \033[0m", a);
             break ;
         case 4 :
-            printf("\033[0;31m%s\033[0m", a);
+            printf("\033[0;31m %s \033[0m", a);
             break;
         case 5 :
-            printf("\033[0;32m%s\033[0m", a);
-            break;
-        case 6 :
-            printf("\033[0;34m%s\033[0m", a);
-            break;
-        case 7 :
-            printf("\033[0;29m%s\033[0m", a);
-            break;
-        case 8 :
-            printf("\033[0;32m%s\033[0m", a);
+            printf("\033[0;32m %s \033[0m", a);
             break;
         default :
             //printf("\033[1;0m %s \033[0m", a);
             printf("%s", a);
     }
-    return m;
 }
 
 
+
+void do_ls(char dirname[]) {
+    DIR *dirp;
+    struct dirent *direntp;
+    if ((dirp = opendir(dirname)) == NULL) {
+        perror("opendir");
+        return ;
+    }
+    char complete_d_name[1005][20];
+    int n = 0, Blanket_MAX = 0;
+    while ((direntp = readdir(dirp)) != NULL) {
+        int Blanket = sprintf(complete_d_name[n++], "%s", direntp->d_name);
+        if (Blanket_MAX < Blanket) Blanket_MAX = Blanket;
+    }
+    int COL, ROW;
+    init_ioctl(&COL, &ROW);
+    cout << "total " << n << " files" << endl;
+    my_sort(complete_d_name, n);
+    int COL_NUM = COL / Blanket_MAX;
+    int ROM_NUM = n / COL_NUM;
+    int ROM_MODNUM = n % COL_NUM;
+    if(ROM_MODNUM > 0) ROM_NUM++;
+    COL_NUM = n / ROM_NUM;
+    int COL_MODNUM = n % ROM_NUM;
+    for (int i = 0; i < ROM_NUM; i++) {
+        int flag = 0;
+        if((COL_MODNUM--) > 0) {
+            flag = 1;
+        }
+        for (int k = 0; k < COL_NUM + flag; k++) {
+            //struct stat info;
+            //stat(complete_d_name, &info);
+            //int Flag = 0;
+            //Get_mode(info.st_mode, &Flag);
+            int RBlanket = printf("%s", complete_d_name[k * ROM_NUM + i]);
+            for (int j = RBlanket; j < (Blanket_MAX + 2); j++) {
+                cout << " ";
+            }
+        }
+        cout << endl;
+    }
+    closedir(dirp);
+}
 
 
 int init_ioctl(int *col, int *row) {
@@ -122,10 +154,9 @@ char *Get_mode(mode_t mode, int *f) {
     if (S_ISDIR(mode)) {
         s[0] = 'd';
         *f = 1;
-    } else if (S_ISLNK(mode)) {
-        s[0] = 'l';
-        *f = 5;
-    } else if (S_ISCHR(mode)) {
+    }
+ //   else if (S_IFLNK(mode)) s[0] = 'l';
+    else if (S_ISCHR(mode)) {
         s[0] = 'c';
         *f = 2;
     } else if (S_ISBLK(mode)) {
@@ -134,13 +165,8 @@ char *Get_mode(mode_t mode, int *f) {
     } else if (S_ISFIFO(mode)) {
         s[0] = 'i';
         *f= 4;
-    } else if (S_ISREG(mode)) {
-        s[0] = 'r';
-        *f = 6;
-    } else if (S_ISBLK(mode)) {
-        s[0] = 'b';
-        *f = 7;
     }
+//    else if (S_IFREG(mode)) s[0] = 'r';
     if (mode & S_IRUSR) s[1] = 'r';
     if (mode & S_IWUSR) s[2] = 'w';
     if (mode & S_IXUSR) s[3] = 'x';
@@ -151,7 +177,7 @@ char *Get_mode(mode_t mode, int *f) {
     if (mode & S_IWOTH) s[8] = 'w';
     if (mode & S_IXOTH) {
         s[9] = 'x';
-        *f = 8;
+        *f = 5;
     }
     return s;
 }
@@ -191,51 +217,6 @@ void do_ls_1(char dirname[]) {
         cout << "  ";
         OUTPUTcolor_file_Name(complete_d_name[i], Flag);
         //cout << complete_d_name[i];
-        cout << endl;
-    }
-    closedir(dirp);
-}
-
-void do_ls(char dirname[]) {
-    DIR *dirp;
-    struct dirent *direntp;
-    if ((dirp = opendir(dirname)) == NULL) {
-        perror("opendir");
-        return ;
-    }
-    char complete_d_name[1005][20];
-    int n = 0, Blanket_MAX = 0;
-    while ((direntp = readdir(dirp)) != NULL) {
-        int Blanket = sprintf(complete_d_name[n++], "%s", direntp->d_name);
-        if (Blanket_MAX < Blanket) Blanket_MAX = Blanket;
-    }
-    int COL, ROW;
-    init_ioctl(&COL, &ROW);
-    cout << "total " << n << " files" << endl;
-    my_sort(complete_d_name, n);
-    int COL_NUM = COL / Blanket_MAX;
-    int ROM_NUM = n / COL_NUM;
-    int ROM_MODNUM = n % COL_NUM;
-    if(ROM_MODNUM > 0) ROM_NUM++;
-    COL_NUM = n / ROM_NUM;
-    int COL_MODNUM = n % ROM_NUM;
-    for (int i = 0; i < ROM_NUM; i++) {
-        int flag = 0;
-        if((COL_MODNUM--) > 0) {
-            flag = 1;
-        }
-        for (int k = 0; k < COL_NUM + flag; k++) {
-            struct stat info;
-            stat(complete_d_name[k * ROM_NUM + i], &info);
-            int Flag = 0;
-            Get_mode(info.st_mode, &Flag);
-            int RBlanket = OUTPUTcolor_file_Name(complete_d_name[k * ROM_NUM + i], Flag);
-            //int RBlanket = printf("%s", complete_d_name[k * ROM_NUM + i]);
-            for (int j = RBlanket; j < (Blanket_MAX + 1); j++) {
-                if (k == COL_NUM) break;
-                cout << " ";
-            }
-        }
         cout << endl;
     }
     closedir(dirp);
